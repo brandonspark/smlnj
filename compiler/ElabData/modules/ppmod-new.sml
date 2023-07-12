@@ -78,7 +78,7 @@ local
   val ppTyfun = PPType.ppTyfun
   val ppFormals = PPType.ppFormals
 
-in 
+in
 
 fun strToEnv(M.SIG {elements,...},entities) =
     let fun bindElem ((sym,spec), env) =
@@ -435,25 +435,25 @@ and ppSignature0 ppstrm (sign,env,depth,entityEnvOp) =
 		     cut ppstrm; pps "name: ";
 		     case name
 		       of NONE => pps "ANONYMOUS"
-			| SOME p => (pps "NAMED "; ppSym ppstrm p);
-		     case elements
-		       of nil => ()
-			| _ => (PP.cut ppstrm;
-				PP.string ppstrm "elements:";
-				PU.ppvseq ppstrm 2 ""
-				  (fn ppstrm => (fn elem =>
-				      ppElement (env,depth,entityEnvOp) ppstrm elem))
-				  nonConsElems);
-		     case strsharing
-		       of nil => ()
-			| _ => (cut ppstrm; pps "strsharing:";
-				ppConstraints("",strsharing));
-		     case typsharing
-		       of nil => ()
-			| _ => (cut ppstrm; pps "tycsharing:";
-				ppConstraints("type ",typsharing));
-		    closeBox();
-		   closeBox())
+            | SOME p => (pps "NAMED "; ppSym ppstrm p);
+          case elements
+            of nil => ()
+              | _ => (PP.cut ppstrm;
+                PP.string ppstrm "elements:";
+                PU.ppvseq ppstrm 2 ""
+                  (fn ppstrm => (fn elem =>
+                      ppElement (env,depth,entityEnvOp) ppstrm elem))
+                  nonConsElems);
+          case strsharing
+            of nil => ()
+              | _ => (cut ppstrm; pps "strsharing:";
+                    ppConstraints("",strsharing));
+          case typsharing
+            of nil => ()
+              | _ => (cut ppstrm; pps "tycsharing:";
+                ppConstraints("type ",typsharing));
+          closeBox();
+          closeBox())
 		else ( (* not !internals *)
 		  case elements
 		   of nil => pps "sig end"

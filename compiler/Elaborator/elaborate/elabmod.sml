@@ -637,8 +637,11 @@ fun constrStr(transp, sign, str, strDec, strExp, evOp, tdepth, entEnv, rpath,
           SM.matchStr{sign=sign, str=str, strExp=strExp, evOp=evOp,
                       tdepth=tdepth, entEnv=entEnv, statenv=env, rpath=rpath,
                       region=region, compInfo=compInfo}
-   in if transp
-      then (A.SEQdec[strDec, matchedDec], matchedStr, matchedExp)
+      val (dec, str, strexp) =
+      if transp
+      then (
+	       debugmsg "<<< constrStr[transp=true]";
+        A.SEQdec[strDec, matchedDec], matchedStr, matchedExp)
       else (* instantiate the signature (opaque match) *)
 	   let val STR {rlzn=matchedRlzn, access, prim, ...} = matchedStr
 	       val {rlzn=abstractRlzn, ...} =
@@ -648,6 +651,10 @@ fun constrStr(transp, sign, str, strDec, strExp, evOp, tdepth, entEnv, rpath,
 	       val _ = debugmsg "<<< constrStr[transp=false]"
             in (A.SEQdec[strDec, matchedDec], abstractStr, matchedExp)
 	   end
+    val _ = debugmsg "--(brand)constrStr: constrained str is"
+    val _ = showStr("--constrStr: resultStr: ", str,env)
+  in
+    (dec, str, strexp)
   end (* fun constrStr *)
 
 
@@ -688,7 +695,7 @@ val depth : int =
 
 val _ = dbsaynl (">>> elabStr: " ^ sname)
 val _ = showStrExpAst ("### elabStr: strexp = ", strexp, env)
-		   
+
 (* elab: Ast.strexp * staticEnv * entityEnv * region
  *        -> A.dec * M.Structure * M.strExp * EE.entityEnv
  *  subsidiary function for elaborating strexps *)
@@ -917,9 +924,9 @@ fun elab (BaseStr decl, env, entEnv, region) =
 			    EM.nullErrorBody);
 		      (strDecAbsyn, str, exp))
 		 | SOME csig =>
-                      constrStr(transp, csig, str, strDecAbsyn, exp,
-                                evOp, depth, entEnv, rpath,
-                                env, region, compInfo)
+        constrStr(transp, csig, str, strDecAbsyn, exp,
+                  evOp, depth, entEnv, rpath,
+                  env, region, compInfo)
 
        in (resDec, resStr, resExp, resDee)
       end
@@ -1142,29 +1149,29 @@ case fctexp
           val fctExp = M.LAMBDA{param=paramEntVar,body=bodyExp'}
 
           val resFct =
-	      case bodyStr'
-		of ERRORstr => ERRORfct (* result sig match failed *)
-		 | STR { sign, ... } =>
-		   let val fctSig =
-			   M.FSIG{kind=NONE, paramsig=paramSig,
-				  bodysig=sign, paramvar=paramEntVar,
-				  paramsym=paramNameOp}
+            case bodyStr'
+              of ERRORstr => ERRORfct (* result sig match failed *)
+              | STR { sign, ... } =>
+                let val fctSig =
+                  M.FSIG{kind=NONE, paramsig=paramSig,
+                    bodysig=sign, paramvar=paramEntVar,
+                    paramsym=paramNameOp}
 
-                       val rlzn = { stamp = mkStamp(),
-				    closure=M.CLOSURE{param=paramEntVar,
-						      body=bodyExp',
-						      env=entEnv},
-				    tycpath=NONE,
-				    properties = PropList.newHolder (),
-				    rpath=rpath,
-				    stub = NONE}
-                          (* Closure: Using the old entity environment !! *)
+                                val rlzn = { stamp = mkStamp(),
+                      closure=M.CLOSURE{param=paramEntVar,
+                            body=bodyExp',
+                            env=entEnv},
+                      tycpath=NONE,
+                      properties = PropList.newHolder (),
+                      rpath=rpath,
+                      stub = NONE}
+                                    (* Closure: Using the old entity environment !! *)
 
-                       val dacc = DA.namedAcc(name, mkv)
+                                val dacc = DA.namedAcc(name, mkv)
 
-		    in M.FCT{sign=fctSig, rlzn=rlzn, access=dacc, prim=[]}
-		   end
-		 | STRSIG _ => bug "elabFct"
+                  in M.FCT{sign=fctSig, rlzn=rlzn, access=dacc, prim=[]}
+                end
+              | STRSIG _ => bug "elabFct"
 
           val _ = debugmsg "--elabFct[BaseFct]: resFct defined"
 

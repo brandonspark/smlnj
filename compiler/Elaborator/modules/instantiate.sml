@@ -1345,6 +1345,9 @@ let fun instToStr' (instance as (FinalStr{sign as SIG {closed, elements,... },
                     entEnv, rpath: IP.path, failuresSoFar: int)
               : M.strEntity * int =
  	(debugmsg (">>instToStr': " ^ IP.toString rpath);
+   debugmsg ("(brand) instToStr': show inst");
+   debugmsg (instToString inst)
+
 	 case !finalEnt
 	  of CONST_ENT strEnt => (strEnt,failuresSoFar)  (* already visited *)
 	   | PATH_ENT ep =>
@@ -1637,16 +1640,16 @@ let fun instToStr' (instance as (FinalStr{sign as SIG {closed, elements,... },
 
     fun loop(strEnt,failures) =
        (debugmsg ("instToStr': failures = " ^ Int.toString failures);
-        if failures = 0
-	then strEnt
-	else let val (strEnt',failures') =
-	             instToStr'(instance,entEnv,rpath,0)
-	     in if failures' < failures
-		then loop(strEnt',failures')
-		else (err EM.COMPLAIN "dependency cycle in instantiate"
-		         EM.nullErrorBody;
-		      strEnt')
-	     end)
+        if failures = 0 then
+          strEnt
+        else let val (strEnt',failures') =
+                    instToStr'(instance,entEnv,rpath,0)
+            in if failures' < failures
+              then loop(strEnt',failures')
+              else (err EM.COMPLAIN "dependency cycle in instantiate"
+                      EM.nullErrorBody;
+                    strEnt')
+                end)
  in loop(instToStr'(instance,entEnv,rpath,0))
 end (* fun instToStr *)
 
@@ -1715,6 +1718,9 @@ and instGeneric{sign, entEnv, instKind, rpath, region,
       val (inst, abstycs, tyceps, cnt) =
           sigToInst(sign, entEnv, instKind, rpath, err, compInfo)
 
+      val _ = debugmsg (">>> (brand)[INS]instGeneric got inst")
+      val _ = debugmsg (instToString inst)
+
       val counter = ref cnt
       fun cntf x =
 	  let val k = !counter
@@ -1746,10 +1752,10 @@ and instGeneric{sign, entEnv, instKind, rpath, region,
    in (strEnt, abs_tycs, fct_tps, all_eps, rev tyceps)
   end
 
-(* debugging wrappers 
+(* debugging wrappers
 val sigToInst = wrap "sigToInst" sigToInst
 val instToStr = wrap "instToStr" instToStr
-val instGeneric = wrap "instGeneric" instGeneric 
+val instGeneric = wrap "instGeneric" instGeneric
 *)
 
 (*** instantiation of the formal functor body signatures ***)
@@ -1839,4 +1845,3 @@ end (* structure Instantiate *)
 
 (* [dbm, 6/16/06] Eliminated ii2ty from INSTANTIATE_PARAM. Eventually want
    to eliminate the parameterization completely. *)
-
