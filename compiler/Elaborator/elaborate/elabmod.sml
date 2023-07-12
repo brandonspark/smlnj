@@ -1119,6 +1119,12 @@ case fctexp
 		    | Transparent x => (SOME(mkStamp()), SOME (doSig x), true)
 		    | Opaque x =>      (SOME(mkStamp()), SOME (doSig x), false)
 	      end
+          val constraint_str =
+            case constraint of
+              NoSig => "NoSig"
+            | Transparent _ => "Transparent"
+            | Opaque _ => "Opaque"
+          val _ = debugmsg "--elabFct[BaseFct]: result signature elaborated"
 
           val _ = debugmsg "--elabFct[BaseFct]: result signature elaborated"
 
